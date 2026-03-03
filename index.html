@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cape Breton AI Initiative — Assessment Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Fraunces:ital,wght@0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F7F9;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #FAFBFC;
+    --border: #E2E8F0;
+    --text: #3B4A56;
+    --text-muted: #6B7F8E;
+    --text-heading: #1A2B33;
+    --accent: #0D7377;
+    --accent-glow: rgba(13, 115, 119, 0.1);
+    --green: #059669;
+    --green-bg: rgba(5, 150, 105, 0.08);
+    --green-border: rgba(5, 150, 105, 0.2);
+    --yellow: #E09F3E;
+    --yellow-bg: rgba(224, 159, 62, 0.08);
+    --yellow-border: rgba(224, 159, 62, 0.2);
+    --red: #8B9DAF;
+    --red-bg: rgba(139, 157, 175, 0.08);
+    --red-border: rgba(139, 157, 175, 0.2);
+    --orange: #C2590A;
+    --blue: #2563EB;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .noise {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    letter-spacing: -0.02em;
+  }
+
+  .header h1 span {
+    color: var(--accent);
+  }
+
+  .header .date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .header .subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 700px;
+  }
+
+  /* North Star */
+  .north-star {
+    background: linear-gradient(135deg, rgba(13, 115, 119, 0.06), rgba(13, 115, 119, 0.02));
+    border: 1px solid rgba(13, 115, 119, 0.15);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .north-star-left {
+    flex: 1;
+  }
+
+  .north-star-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+
+  .north-star-metric {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    color: var(--text-heading);
+    font-weight: 600;
+  }
+
+  .north-star-target {
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .north-star-number {
+    font-family: 'Fraunces', serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .north-star-number-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Pillar Sections */
+  .pillar {
+    margin-bottom: 2.5rem;
+  }
+
+  .pillar-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .pillar-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .pillar-icon.literacy { background: rgba(37, 99, 235, 0.1); color: var(--blue); }
+  .pillar-icon.adoption { background: rgba(13, 115, 119, 0.1); color: var(--accent); }
+  .pillar-icon.startups { background: rgba(194, 89, 10, 0.1); color: var(--orange); }
+
+  .pillar-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-heading);
+  }
+
+  /* KR Cards */
+  .kr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .kr-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    transition: background 0.2s, border-color 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .kr-card:hover {
+    background: var(--bg-card-hover);
+    border-color: #2A4050;
+  }
+
+  .kr-card.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .kr-id {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .kr-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .kr-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .kr-target {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .kr-target strong {
+    color: var(--text);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.65rem;
+    border-radius: 100px;
+  }
+
+  .status-badge.green {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+
+  .status-badge.yellow {
+    background: var(--yellow-bg);
+    color: var(--yellow);
+    border: 1px solid var(--yellow-border);
+  }
+
+  .status-badge.red {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid var(--red-border);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-dot.green { background: var(--green); }
+  .status-dot.yellow { background: var(--yellow); }
+  .status-dot.red { background: var(--red); }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin-bottom: 0.65rem;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.yellow { background: var(--yellow); }
+  .progress-fill.red { background: var(--red); }
+  .progress-fill.accent { background: var(--accent); }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  .kr-detail {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-top: 0.5rem;
+  }
+
+  /* SMB Projects */
+  .smb-projects {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .smb-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .smb-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .smb-card.scoping-complete::before { background: var(--green); }
+  .smb-card.scoping-progress::before { background: var(--yellow); }
+  .smb-card.discovery::before { background: var(--blue); }
+
+  .smb-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-heading);
+    margin-bottom: 0.25rem;
+  }
+
+  .smb-stage {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.65rem;
+  }
+
+  .smb-stage.scoping-complete { color: var(--green); }
+  .smb-stage.scoping-progress { color: var(--yellow); }
+  .smb-stage.discovery { color: var(--blue); }
+
+  .smb-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .smb-impact {
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-top: 0.65rem;
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  /* Commentary */
+  .commentary {
+    background: rgba(0,0,0,0.02);
+    border-left: 3px solid var(--border);
+    padding: 0.85rem 1.25rem;
+    margin-top: 0.75rem;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Overall Assessment */
+  .overall {
+    background: linear-gradient(135deg, var(--bg-card), rgba(13, 115, 119, 0.04));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 1rem;
+  }
+
+  .overall-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 1rem;
+  }
+
+  .overall-text {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* Confidence Grid */
+  .confidence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .confidence-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+
+  .confidence-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .confidence-value {
+    font-family: 'Fraunces', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .confidence-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate {
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+  .delay-6 { animation-delay: 0.6s; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .kr-grid { grid-template-columns: 1fr; }
+    .smb-projects { grid-template-columns: 1fr; }
+    .confidence-grid { grid-template-columns: 1fr; }
+    .north-star { flex-direction: column; text-align: center; }
+    .container { padding: 1.5rem 1.25rem 3rem; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; color: #1a1a1a; }
+    .noise { display: none; }
+    .kr-card, .smb-card, .overall, .north-star { border-color: #ddd; background: #fafafa; }
+    .animate { opacity: 1; animation: none; }
+  }
+
+  .report-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 0.45rem 1rem;
+    border: 1px solid rgba(13, 115, 119, 0.25);
+    border-radius: 6px;
+    transition: background 0.2s, border-color 0.2s;
+    background: rgba(13, 115, 119, 0.04);
+  }
+  .report-link:hover {
+    background: rgba(13, 115, 119, 0.1);
+    border-color: rgba(13, 115, 119, 0.4);
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header animate">
+    <div class="header-top">
+      <h1>Cape Breton AI Initiative <span>— Dashboard</span></h1>
+      <div class="date">Updated: February 26, 2026</div>
+    </div>
+    <p class="subtitle">OKR progress across three strategic pillars: AI Literacy, AI Adoption, and AI Startups.</p>
+    <a href="https://coda.io/d/Volta-Cape-Breton-2026-Q1-Review_dHOABWoKWuN/Volta-Cape-Breton-2026-Q1-Review_su6qGMOJ#Table-5_tuEyRGw2/r3&columnId=c-y_Fqfxce0c" class="report-link" target="_blank">📄 View Full Strategic Review Report &rarr;</a>
+  </div>
+
+  <!-- North Star -->
+  <div class="north-star animate delay-1">
+    <div class="north-star-left">
+      <div class="north-star-label">★ North Star Metric</div>
+      <div class="north-star-metric">Local organizations working on an AI product or running an AI-enabled workflow for 90+ consecutive days<br><span style="font-size: 0.82rem; font-weight: 400; color: var(--text-muted); margin-top: 0.35rem; display: inline-block;">Current: 3 SMB projects in active scoping pipeline + 1 in Startup</span></div>
+    </div>
+    <div class="north-star-target">
+      <div class="north-star-number">5</div>
+      <div class="north-star-number-label">Target orgs</div>
+    </div>
+  </div>
+
+  <!-- PILLAR 1: AI LITERACY -->
+  <div class="pillar animate delay-2">
+    <div class="pillar-header">
+      <div class="pillar-icon literacy">📖</div>
+      <div class="pillar-title">Pillar 1 — AI Literacy</div>
+    </div>
+
+    <div class="kr-grid">
+      <div class="kr-card">
+        <div class="kr-id">KR 1.1</div>
+        <div class="kr-title">Business people completing AI & Digital Transformation Workshop Series</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>30</strong></span>
+          <span class="status-badge yellow"><span class="status-dot yellow"></span> In Progress</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill yellow" style="width: 40%"></div>
+          </div>
+          <div class="progress-label">
+            <span>12 at Lunch & Learn</span>
+            <span>40%</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          Lunch & Learn conducted (12 attendees) — inputs gathered to shape workshop design. First formal workshop launching <strong>March 2026</strong>. Second workshop topic decided, pending date.
+        </div>
+      </div>
+
+      <div class="kr-card">
+        <div class="kr-id">KR 1.2</div>
+        <div class="kr-title">Downloads/shares of non-technical educational material (playbooks)</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>250</strong></span>
+          <span class="status-badge yellow"><span class="status-dot yellow"></span> Early Stage</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill yellow" style="width: 8%"></div>
+          </div>
+          <div class="progress-label">
+            <span>In feedback — not yet distributed</span>
+            <span>~0</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          Business Email Infrastructure Playbook designed and shared for peer feedback (3 iterations). Near publication-ready. Distribution channel and tracking mechanism needed before launch.
+        </div>
+      </div>
+    </div>
+
+    <div class="commentary">
+      <strong>Commentary:</strong> The Lunch & Learn validated demand and shaped curriculum based on what attendees actually need. The playbook has been refined through multiple iterations and is near publication-ready. Execution in Q2 will determine whether we hit the 30/250 targets.
+    </div>
+  </div>
+
+  <!-- PILLAR 2: AI ADOPTION -->
+  <div class="pillar animate delay-3">
+    <div class="pillar-header">
+      <div class="pillar-icon adoption">⚡</div>
+      <div class="pillar-title">Pillar 2 — AI Adoption</div>
+    </div>
+
+    <div class="kr-grid">
+      <div class="kr-card">
+        <div class="kr-id">KR 2.1</div>
+        <div class="kr-title">Successfully scope and pilot AI adoption projects for SMBs</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>3 projects</strong></span>
+          <span class="status-badge green"><span class="status-dot green"></span> On Track</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill green" style="width: 100%"></div>
+          </div>
+          <div class="progress-label">
+            <span>3 of 3 active</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          Three projects in motion across different industries and stages. See project cards below.
+        </div>
+      </div>
+
+      <div class="kr-card">
+        <div class="kr-id">KR 2.2</div>
+        <div class="kr-title">AI Builders Network members completing industry-partnered PoC</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>15 members</strong></span>
+          <span class="status-badge yellow"><span class="status-dot yellow"></span> Early Stage</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill yellow" style="width: 27%"></div>
+          </div>
+          <div class="progress-label">
+            <span>~4 signups, outreach underway</span>
+            <span>~27%</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          Outreach underway to students and builders. ~4 early signups. No PoCs completed yet. Active SMB projects could serve as real-world challenge briefs.
+        </div>
+      </div>
+    </div>
+
+    <!-- SMB Project Cards -->
+    <div class="smb-projects">
+      <div class="smb-card scoping-complete">
+        <div class="smb-name">RMT Industrial Sales</div>
+        <div class="smb-stage scoping-complete">Scoping Near-Complete</div>
+        <div class="smb-desc">$100K+ WooCommerce storefront with 150K SKUs. Search broken — returns 1,200+ irrelevant results. 22K products lack descriptions. Marketing launch completely blocked.</div>
+        <div class="smb-impact">AI Opportunity: Semantic search, variant grouping, AI-generated descriptions</div>
+      </div>
+
+      <div class="smb-card scoping-progress">
+        <div class="smb-name">InteGolf</div>
+        <div class="smb-stage scoping-progress">Scoping In Progress</div>
+        <div class="smb-desc">Golf travel platform where every trip flows through one person manually (30-60 min/itinerary). Revenue capped by throughput. US market expansion blocked.</div>
+        <div class="smb-impact">AI Opportunity: AI-drafted itineraries, 3-5× volume without adding headcount</div>
+      </div>
+
+      <div class="smb-card discovery">
+        <div class="smb-name">Port Hawkesbury Paper</div>
+        <div class="smb-stage discovery">Early Discovery</div>
+        <div class="smb-desc">Conversation initiated through funding account manager. Exploring AI landscape assessment to identify use cases that create operational savings for reinvestment.</div>
+        <div class="smb-impact">Major industrial employer — signals traditional industry taking AI seriously</div>
+      </div>
+    </div>
+
+    <div class="commentary">
+      <strong>Commentary:</strong> All three target projects are in motion spanning industrial supply, travel tech, and paper manufacturing at varying stages of maturity. The AI Builders Network has begun outreach — connecting it to active SMB projects as real-world challenge briefs could accelerate both recruitment and PoC completion.
+    </div>
+  </div>
+
+  <!-- PILLAR 3: AI STARTUPS -->
+  <div class="pillar animate delay-4">
+    <div class="pillar-header">
+      <div class="pillar-icon startups">🚀</div>
+      <div class="pillar-title">Pillar 3 — AI Startups (Entrepreneurship)</div>
+    </div>
+
+    <div class="kr-grid">
+      <div class="kr-card">
+        <div class="kr-id">KR 3.1</div>
+        <div class="kr-title">High-potential ideas/teams identified and placed for residency</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>6 startups</strong></span>
+          <span class="status-badge yellow"><span class="status-dot yellow"></span> In Progress</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill yellow" style="width: 50%"></div>
+          </div>
+          <div class="progress-label">
+            <span>1 active, 2 identified</span>
+            <span>3 of 6</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          1 startup actively being coached. 2 additional startups identified in pipeline. Remaining 3 require active sourcing through CBU/NSCC, CBBIC programming, and Ignite/Volta networks.
+        </div>
+      </div>
+
+      <div class="kr-card">
+        <div class="kr-id">KR 3.2</div>
+        <div class="kr-title">Guide startups through market validation and secure paying customers</div>
+        <div class="kr-meta">
+          <span class="kr-target">Target: <strong>2 startups with $10K revenue</strong></span>
+          <span class="status-badge yellow"><span class="status-dot yellow"></span> Early Stage</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill yellow" style="width: 10%"></div>
+          </div>
+          <div class="progress-label">
+            <span>1 in coaching, no revenue yet</span>
+            <span>0 of 2</span>
+          </div>
+        </div>
+        <div class="kr-detail">
+          Coaching underway with 1 startup. Revenue milestone not yet reached. The deeper constraint is ecosystem readiness — startups need a market that recognizes its problems as solvable.
+        </div>
+      </div>
+    </div>
+
+    <div class="commentary">
+      <strong>Commentary:</strong> Pipeline is building but the deeper constraint is ecosystem readiness — startups need a market that recognizes its problems as solvable. The literacy and adoption work is actively creating that foundation. Structured coaching with milestone accountability should help accelerate toward the $10K revenue target.
+    </div>
+  </div>
+
+  <!-- Overall Assessment -->
+  <div class="overall animate delay-5">
+    <div class="overall-title">Overall Assessment</div>
+    <div class="overall-text">
+      The initiative is building real momentum in <strong>SMB adoption</strong> (strongest pillar — 3/3 projects active). Literacy has a validated pipeline with the March workshop launch. Startups are at 50% on identification. The AI Builders Network has begun outreach but needs structured programming to convert early signups into completed PoCs. Q2 execution on workshops, playbook distribution, and the Builders Network will determine whether we hit full-year targets.
+    </div>
+
+    <div class="confidence-grid">
+      <div class="confidence-item">
+        <div class="confidence-label">AI Literacy</div>
+        <div class="confidence-value" style="color: var(--yellow);">Medium</div>
+        <div class="confidence-sub">Depends on Q2 execution</div>
+      </div>
+      <div class="confidence-item">
+        <div class="confidence-label">AI Adoption</div>
+        <div class="confidence-value" style="color: var(--green);">High</div>
+        <div class="confidence-sub">3/3 projects in motion</div>
+      </div>
+      <div class="confidence-item">
+        <div class="confidence-label">AI Startups</div>
+        <div class="confidence-value" style="color: var(--yellow);">Low–Med</div>
+        <div class="confidence-sub">Ecosystem readiness constraint</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
